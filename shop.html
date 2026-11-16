@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Corner Shop</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --surface: #ffffff;
+    --ink: #1f2a2e;
+    --muted: #66757a;
+    --line: #e4ddd0;
+    --brand: #0f6b5c;
+    --brand-ink: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12191b;
+      --surface: #1a2427;
+      --ink: #eaf0f0;
+      --muted: #9bacb0;
+      --line: #2b3a3e;
+      --brand: #3fbfa8;
+      --brand-ink: #0b1a17;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+  .logo { font-size: 1.3rem; font-weight: 700; color: var(--brand); text-decoration: none; }
+  nav { display: flex; gap: 18px; align-items: center; }
+  nav a { color: var(--ink); text-decoration: none; font-size: .95rem; }
+  nav a:hover { color: var(--brand); }
+  .cart-btn {
+    font: inherit;
+    background: var(--brand);
+    color: var(--brand-ink);
+    border: none;
+    border-radius: 6px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+  .hero {
+    padding: 56px 24px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero h1 { font-size: clamp(1.8rem, 5vw, 2.8rem); margin: 0 0 8px; }
+  .hero p { color: var(--muted); margin: 0 auto 20px; max-width: 46ch; }
+  .btn {
+    display: inline-block;
+    background: var(--brand);
+    color: var(--brand-ink);
+    text-decoration: none;
+    padding: 10px 22px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 24px; }
+  h2 { margin: 0 0 18px; font-size: 1.3rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .swatch {
+    height: 130px;
+    display: grid;
+    place-items: center;
+    font-size: 2.6rem;
+  }
+  .card-body { padding: 14px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+  .card-body h3 { margin: 0; font-size: 1rem; }
+  .card-body p { margin: 0; color: var(--muted); font-size: .88rem; flex: 1; }
+  .price { font-weight: 700; margin-top: 6px; }
+  .card button {
+    font: inherit;
+    margin-top: 8px;
+    padding: 8px;
+    border: 1px solid var(--brand);
+    background: transparent;
+    color: var(--brand);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .card button:hover { background: var(--brand); color: var(--brand-ink); }
+  button:focus-visible, a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+  /* Cart panel */
+  #cart {
+    position: fixed;
+    top: 0; right: 0;
+    width: min(380px, 100%);
+    height: 100%;
+    background: var(--surface);
+    border-left: 1px solid var(--line);
+    padding: 20px;
+    transform: translateX(100%);
+    transition: transform .25s;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+  }
+  #cart.open { transform: translateX(0); }
+  #cart-head { display: flex; justify-content: space-between; align-items: center; }
+  #cart-head h2 { margin: 0; }
+  #cart-head button { font: inherit; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; }
+  #cart-items { flex: 1; overflow-y: auto; margin: 14px 0; }
+  .line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: .93rem;
+  }
+  .qty button {
+    font: inherit;
+    width: 26px; height: 26px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .qty span { display: inline-block; min-width: 22px; text-align: center; }
+  .empty { color: var(--muted); }
+  .total { display: flex; justify-content: space-between; font-weight: 700; font-size: 1.1rem; margin-bottom: 12px; }
+  #checkout {
+    font: inherit;
+    width: 100%;
+    padding: 11px;
+    border: none;
+    background: var(--brand);
+    color: var(--brand-ink);
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #checkout:disabled { opacity: .5; cursor: not-allowed; }
+  #message { color: var(--brand); margin-top: 10px; min-height: 1.4em; font-size: .9rem; }
+
+  footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 28px; border-top: 1px solid var(--line); }
+  @media (prefers-reduced-motion: reduce) { #cart { transition: none; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo">Corner Shop</a>
+  <nav>
+    <a href="#products">Products</a>
+    <a href="#contact">Contact</a>
+    <button class="cart-btn" id="open-cart">Cart (<span id="cart-count">0</span>)</button>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Everyday goods, delivered to your door</h1>
+  <p>Simple, well-made products at fair prices. Free delivery on orders over R500.</p>
+  <a class="btn" href="#products">Shop now</a>
+</section>
+
+<main>
+  <h2 id="products">Products</h2>
+  <div class="grid" id="product-grid"></div>
+</main>
+
+<footer id="contact">
+  Corner Shop &middot; hello@cornershop.example &middot; 011 000 0000<br>
+  Sample shop for demonstration.
+</footer>
+
+<aside id="cart" aria-label="Shopping cart">
+  <div id="cart-head">
+    <h2>Your cart</h2>
+    <button id="close-cart" aria-label="Close cart">&times;</button>
+  </div>
+  <div id="cart-items"></div>
+  <div class="total"><span>Total</span><span id="cart-total">R0.00</span></div>
+  <button id="checkout">Checkout</button>
+  <div id="message" role="status"></div>
+</aside>
+
+<script>
+  const products = [
+    { id: 1, name: "Cotton T-shirt",   desc: "Soft, everyday fit.",         price: 189,  icon: "👕", color: "#cfe8e1" },
+    { id: 2, name: "Canvas Backpack",  desc: "Fits a 15-inch laptop.",      price: 549,  icon: "🎒", color: "#f3dfc4" },
+    { id: 3, name: "Ceramic Mug",      desc: "350 ml, dishwasher safe.",    price: 99,   icon: "☕", color: "#e6d5ee" },
+    { id: 4, name: "Water Bottle",     desc: "Steel, keeps drinks cold.",   price: 229,  icon: "🧴", color: "#d3e3f5" },
+    { id: 5, name: "Notebook",         desc: "A5, 120 lined pages.",        price: 69,   icon: "📓", color: "#f5d9d3" },
+    { id: 6, name: "Baseball Cap",     desc: "Adjustable, one size.",       price: 149,  icon: "🧢", color: "#dcebc8" }
+  ];
+
+  const cart = {}; // id -> quantity
+  const money = n => "R" + n.toFixed(2);
+
+  const grid = document.getElementById("product-grid");
+  products.forEach(p => {
+    const card = document.createElement("article");
+    card.className = "card";
+    card.innerHTML =
+      '<div class="swatch" style="background:' + p.color + '" aria-hidden="true">' + p.icon + "</div>" +
+      '<div class="card-body"><h3>' + p.name + "</h3><p>" + p.desc + "</p>" +
+      '<div class="price">' + money(p.price) + "</div>" +
+      '<button data-id="' + p.id + '">Add to cart</button></div>';
+    grid.appendChild(card);
+  });
+
+  const panel = document.getElementById("cart");
+  const itemsBox = document.getElementById("cart-items");
+  const message = document.getElementById("message");
+
+  function renderCart() {
+    const ids = Object.keys(cart);
+    let total = 0, count = 0;
+    itemsBox.innerHTML = "";
+    if (!ids.length) itemsBox.innerHTML = '<p class="empty">Your cart is empty.</p>';
+    ids.forEach(id => {
+      const p = products.find(x => x.id == id);
+      const q = cart[id];
+      total += p.price * q;
+      count += q;
+      const row = document.createElement("div");
+      row.className = "line";
+      row.innerHTML =
+        "<div>" + p.name + "<br><small>" + money(p.price) + "</small></div>" +
+        '<div class="qty"><button data-act="minus" data-id="' + id + '" aria-label="Remove one">&minus;</button>' +
+        "<span>" + q + "</span>" +
+        '<button data-act="plus" data-id="' + id + '" aria-label="Add one">+</button></div>';
+      itemsBox.appendChild(row);
+    });
+    document.getElementById("cart-total").textContent = money(total);
+    document.getElementById("cart-count").textContent = count;
+    document.getElementById("checkout").disabled = !ids.length;
+  }
+
+  grid.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    cart[b.dataset.id] = (cart[b.dataset.id] || 0) + 1;
+    message.textContent = "";
+    renderCart();
+    panel.classList.add("open");
+  });
+
+  itemsBox.addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    const id = b.dataset.id;
+    cart[id] += b.dataset.act === "plus" ? 1 : -1;
+    if (cart[id] <= 0) delete cart[id];
+    renderCart();
+  });
+
+  document.getElementById("open-cart").onclick = () => panel.classList.add("open");
+  document.getElementById("close-cart").onclick = () => panel.classList.remove("open");
+
+  document.getElementById("checkout").onclick = () => {
+    Object.keys(cart).forEach(k => delete cart[k]);
+    renderCart();
+    message.textContent = "Thank you! Your order has been placed (demo).";
+  };
+
+  renderCart();
+</script>
+</body>
+</html>
